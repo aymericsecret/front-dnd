@@ -38,6 +38,8 @@ import {
 } from "@dnd-kit/sortable";
 import { findSectionContainer } from "./utils";
 import { Item } from "./types";
+import { Section } from "./Section";
+import { Card } from "./Card";
 
 const Main = styled.main`
   overflow-x: hidden;
@@ -63,161 +65,6 @@ const Wrapper = styled.div`
   flex: 1 1 0%;
   overflow-x: auto;
 `;
-
-const ColumnContainer = styled.div<{ $color: string; $isOver: boolean }>`
-  display: flex;
-  flex-wrap: nowrap;
-  flex-shrink: 0;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  width: 400px;
-  border: 1px solid black;
-  background-color: ${(props) =>
-    props.$isOver ? `brightness(${props.$color})` : props.$color};
-  overflow: hidden;
-`;
-const ColumnTitle = styled.div`
-  display: flex;
-  align-items: center;
-  height: 50px;
-  border-bottom: 1px solid black;
-  padding: 10px;
-`;
-
-const ColumnContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0%;
-  padding: 10px;
-
-  gap: 10px;
-  align-items: stretch;
-  justify-content: flex-start;
-
-  overflow-y: scroll;
-`;
-
-const CardsContainer = styled.div`
-  height: 50px;
-  border: 1px solid black;
-  padding: 10px;
-  background-color: white;
-`;
-
-const Column = ({
-  id,
-  title,
-  color,
-  contacts,
-}: {
-  id: string;
-  title: string;
-  color: string;
-  contacts: Item[];
-}) => {
-  const { isOver, setNodeRef } = useDroppable({
-    id,
-  });
-  return (
-    <ColumnContainer ref={setNodeRef} $isOver={isOver} $color={color}>
-      <ColumnTitle>
-        Title {title} - Totals {contacts.length}
-      </ColumnTitle>
-      <ColumnContent>
-        <SortableContext
-          items={contacts}
-          strategy={verticalListSortingStrategy}
-        >
-          {contacts.map((contact) => (
-            // <DraggableCard key={contact.id} contact={contact} />
-            <SortableCard key={contact.id} id={contact.id} contact={contact} />
-          ))}
-        </SortableContext>
-        {/* <DragOverlay
-          dropAnimation={{
-            duration: 500,
-            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-          }}
-        >
-          {active ? <Cards key="overlayItem" contact={active} /> : null}
-        </DragOverlay> */}
-      </ColumnContent>
-    </ColumnContainer>
-  );
-};
-
-// eslint-disable-next-line react/display-name
-const Cards = forwardRef(({ contact, ...props }: any, ref) => {
-  return (
-    <CardsContainer id={contact.id} {...props} ref={ref}>
-      {contact?.name}
-    </CardsContainer>
-  );
-});
-
-const DraggableCard = ({ contact }: { contact: Item }) => {
-  const { attributes, listeners, setNodeRef } = useDraggable({
-    id: contact.id,
-  });
-
-  return (
-    <Cards ref={setNodeRef} contact={contact} {...listeners} {...attributes} />
-  );
-};
-
-interface Context {
-  attributes: Record<string, any>;
-  listeners: DraggableSyntheticListeners;
-  ref(node: HTMLElement | null): void;
-}
-
-const SortableItemContext = createContext<Context>({
-  attributes: {},
-  listeners: undefined,
-  ref() {},
-});
-
-const SortableCard = ({ contact, ...props }: any) => {
-  const {
-    attributes,
-    isDragging,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: props.id });
-
-  // const context = useMemo(
-  //   () => ({
-  //     attributes,
-  //     listeners,
-  //     ref: setActivatorNodeRef,
-  //   }),
-  //   [attributes, listeners, setActivatorNodeRef]
-  // );
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.4 : undefined,
-    transform: CSS.Translate.toString(transform),
-    transition,
-  };
-
-  // const style = {
-  //   transform: CSS.Transform.toString(transform),
-  //   transition,
-  // };
-
-  return (
-    <Cards
-      contact={contact}
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-    />
-  );
-};
 
 export default function Home() {
   const [sections, setSections] = useState(originalItemsOrdered);
@@ -346,7 +193,7 @@ export default function Home() {
         >
           <Wrapper>
             {Object.keys(sections).map((sectionKey) => (
-              <Column
+              <Section
                 key={sectionKey}
                 id={sectionKey}
                 title="1"
@@ -360,7 +207,7 @@ export default function Home() {
                 easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
               }}
             >
-              {active ? <Cards key="overlayItem" contact={activeItem} /> : null}
+              {active ? <Card key="overlayItem" contact={activeItem} /> : null}
             </DragOverlay>
           </Wrapper>
         </DndContext>
