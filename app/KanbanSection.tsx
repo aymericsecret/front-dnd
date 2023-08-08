@@ -1,53 +1,30 @@
-import { useDroppable } from "@dnd-kit/core";
 import { Item } from "./types";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { SortableCard } from "./Card";
 import { styled } from "styled-components";
+import { HTMLAttributes, ReactNode, forwardRef } from "react";
 
-export const KanbanSection = ({
-  id,
-  title,
-  color,
-  contacts,
-}: {
-  id: string;
+type KanbanSectionProps = HTMLAttributes<HTMLDivElement> & {
   title: string;
   color: string;
-  contacts: Item[];
-}) => {
-  const { isOver, setNodeRef } = useDroppable({
-    id,
-  });
-  return (
-    <KanbanSectionContainer ref={setNodeRef} $isOver={isOver} $color={color}>
-      <KanbanSectionTitle>
-        Title {title} - Totals {contacts.length}
-      </KanbanSectionTitle>
-      <KanbanSectionContent>
-        <SortableContext
-          items={contacts}
-          strategy={verticalListSortingStrategy}
-        >
-          {contacts.map((contact) => (
-            // <DraggableCard key={contact.id} contact={contact} />
-            <SortableCard key={contact.id} id={contact.id} contact={contact} />
-          ))}
-        </SortableContext>
-        {/* <DragOverlay
-          dropAnimation={{
-            duration: 500,
-            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-          }}
-        >
-          {active ? <Cards key="overlayItem" contact={active} /> : null}
-        </DragOverlay> */}
-      </KanbanSectionContent>
-    </KanbanSectionContainer>
-  );
+  items: Item[];
+  handleProps?: React.HTMLAttributes<any>;
+  children: ReactNode;
 };
+// eslint-disable-next-line react/display-name
+export const KanbanSection = forwardRef<HTMLDivElement, KanbanSectionProps>(
+  (
+    { title, color, items, children, handleProps }: KanbanSectionProps,
+    forwardedRef
+  ) => {
+    return (
+      <KanbanSectionContainer ref={forwardedRef} $isOver={false} $color={color}>
+        <KanbanSectionTitle {...handleProps}>
+          Title {title} - Totals {items.length}
+        </KanbanSectionTitle>
+        <KanbanSectionContent>{children}</KanbanSectionContent>
+      </KanbanSectionContainer>
+    );
+  }
+);
 
 const KanbanSectionContainer = styled.div<{ $color: string; $isOver: boolean }>`
   display: flex;

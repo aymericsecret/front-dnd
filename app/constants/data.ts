@@ -1,4 +1,4 @@
-import { Section } from "../types";
+import { Section, Section2, SectionList } from "../types";
 
 export let originalItems = [
   { id: "100", name: "Hildegaard", status: "status3" },
@@ -54,7 +54,7 @@ export let originalItems = [
   // { id: "150", name: "Merci", status: 'status3' },
 ];
 
-export let originalItemsOrdered: Section = {
+export let originalItemsOrdered: Section2 = {
   status1: [
     { id: "101", name: "Jorry", status: "status1" },
     { id: "102", name: "Celestyna", status: "status1" },
@@ -87,3 +87,92 @@ export let originalItemsOrdered: Section = {
     { id: "124", name: "Johna", status: "status3" },
   ],
 };
+
+export let sectionsData: SectionList = {
+  status1: {
+    id: "status1",
+    name: "status1",
+    items: [
+      { id: "101", name: "Jorry", status: "status1" },
+      { id: "102", name: "Celestyna", status: "status1" },
+      { id: "104", name: "Lorne", status: "status1" },
+      { id: "109", name: "Flory", status: "status1" },
+      { id: "110", name: "Esmeralda", status: "status1" },
+      { id: "114", name: "Ingrid", status: "status1" },
+      { id: "117", name: "Babita", status: "status1" },
+      { id: "119", name: "Dione", status: "status1" },
+      { id: "121", name: "Dianemarie", status: "status1" },
+      { id: "123", name: "Fawne", status: "status1" },
+    ],
+  },
+  status2: {
+    id: "status2",
+    name: "status2",
+    items: [
+      // { id: "111", name: "Sissy", status: "status2" },
+      // { id: "113", name: "Dolli", status: "status2" },
+      // { id: "115", name: "Marline", status: "status2" },
+      // { id: "118", name: "Nannie", status: "status2" },
+      // { id: "120", name: "Nicoli", status: "status2" },
+      // { id: "122", name: "Vanessa", status: "status2" },
+    ],
+  },
+  status3: {
+    id: "status3",
+    name: "status3",
+    items: [
+      { id: "100", name: "Hildegaard", status: "status3" },
+      { id: "103", name: "Phylis", status: "status3" },
+      { id: "105", name: "Phedra", status: "status3" },
+      { id: "106", name: "Dede", status: "status3" },
+      { id: "107", name: "Konstance", status: "status3" },
+      { id: "108", name: "Calla", status: "status3" },
+      { id: "112", name: "Tybie", status: "status3" },
+      { id: "116", name: "Beth", status: "status3" },
+      { id: "124", name: "Johna", status: "status3" },
+    ],
+  },
+};
+
+// export let sectionsData: Section[] = [
+//   {
+//     id: "status1",
+//     items: [
+//       { id: "101", name: "Jorry", status: "status1" },
+//       { id: "102", name: "Celestyna", status: "status1" },
+//       { id: "104", name: "Lorne", status: "status1" },
+//       { id: "109", name: "Flory", status: "status1" },
+//       { id: "110", name: "Esmeralda", status: "status1" },
+//       { id: "114", name: "Ingrid", status: "status1" },
+//       { id: "117", name: "Babita", status: "status1" },
+//       { id: "119", name: "Dione", status: "status1" },
+//       { id: "121", name: "Dianemarie", status: "status1" },
+//       { id: "123", name: "Fawne", status: "status1" },
+//     ],
+//   },
+//   {
+//     id: "status2",
+//     items: [
+//       // { id: "111", name: "Sissy", status: "status2" },
+//       // { id: "113", name: "Dolli", status: "status2" },
+//       // { id: "115", name: "Marline", status: "status2" },
+//       // { id: "118", name: "Nannie", status: "status2" },
+//       // { id: "120", name: "Nicoli", status: "status2" },
+//       // { id: "122", name: "Vanessa", status: "status2" },
+//     ],
+//   },
+//   {
+//     id: "status3",
+//     items: [
+//       { id: "100", name: "Hildegaard", status: "status3" },
+//       { id: "103", name: "Phylis", status: "status3" },
+//       { id: "105", name: "Phedra", status: "status3" },
+//       { id: "106", name: "Dede", status: "status3" },
+//       { id: "107", name: "Konstance", status: "status3" },
+//       { id: "108", name: "Calla", status: "status3" },
+//       { id: "112", name: "Tybie", status: "status3" },
+//       { id: "116", name: "Beth", status: "status3" },
+//       { id: "124", name: "Johna", status: "status3" },
+//     ],
+//   },
+// ];

@@ -13,25 +13,23 @@ const CardContainer = styled.div`
 `;
 
 // eslint-disable-next-line react/display-name
-export const Card = forwardRef(({ contact, ...props }: any, ref) => {
+export const Card = forwardRef(({ item, ...props }: any, ref) => {
   return (
-    <CardContainer id={contact.id} {...props} ref={ref}>
-      {contact?.name}
+    <CardContainer id={item.id} {...props} ref={ref}>
+      {item?.name}
     </CardContainer>
   );
 });
 
-export const DraggableCard = ({ contact }: { contact: Item }) => {
+export const DraggableCard = ({ item }: { item: Item }) => {
   const { attributes, listeners, setNodeRef } = useDraggable({
-    id: contact.id,
+    id: item.id,
   });
 
-  return (
-    <Card ref={setNodeRef} contact={contact} {...listeners} {...attributes} />
-  );
+  return <Card ref={setNodeRef} item={item} {...listeners} {...attributes} />;
 };
 
-export const SortableCard = ({ contact, ...props }: any) => {
+export const SortableCard = ({ disabled, item, ...props }: any) => {
   const {
     attributes,
     isDragging,
@@ -49,8 +47,8 @@ export const SortableCard = ({ contact, ...props }: any) => {
 
   return (
     <Card
-      contact={contact}
-      ref={setNodeRef}
+      item={item}
+      ref={disabled ? undefined : setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
