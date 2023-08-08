@@ -1,9 +1,9 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CSSProperties, createContext, forwardRef } from "react";
+import { CSSProperties, forwardRef } from "react";
 import { styled } from "styled-components";
 import { Item } from "./types";
-import { DraggableSyntheticListeners, useDraggable } from "@dnd-kit/core";
+import { useDraggable } from "@dnd-kit/core";
 
 const CardContainer = styled.div`
   height: 50px;
@@ -31,47 +31,21 @@ export const DraggableCard = ({ contact }: { contact: Item }) => {
   );
 };
 
-// interface Context {
-//   attributes: Record<string, any>;
-//   listeners: DraggableSyntheticListeners;
-//   ref(node: HTMLElement | null): void;
-// }
-
-// const SortableItemContext = createContext<Context>({
-//   attributes: {},
-//   listeners: undefined,
-//   ref() {},
-// });
-
 export const SortableCard = ({ contact, ...props }: any) => {
   const {
     attributes,
     isDragging,
     listeners,
     setNodeRef,
-    setActivatorNodeRef,
     transform,
     transition,
   } = useSortable({ id: props.id });
 
-  // const context = useMemo(
-  //   () => ({
-  //     attributes,
-  //     listeners,
-  //     ref: setActivatorNodeRef,
-  //   }),
-  //   [attributes, listeners, setActivatorNodeRef]
-  // );
   const style: CSSProperties = {
     opacity: isDragging ? 0.4 : undefined,
     transform: CSS.Translate.toString(transform),
     transition,
   };
-
-  // const style = {
-  //   transform: CSS.Transform.toString(transform),
-  //   transition,
-  // };
 
   return (
     <Card

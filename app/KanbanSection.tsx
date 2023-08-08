@@ -7,7 +7,7 @@ import {
 import { SortableCard } from "./Card";
 import { styled } from "styled-components";
 
-export const Section = ({
+export const KanbanSection = ({
   id,
   title,
   color,
@@ -22,11 +22,11 @@ export const Section = ({
     id,
   });
   return (
-    <SectionContainer ref={setNodeRef} $isOver={isOver} $color={color}>
-      <SectionTitle>
+    <KanbanSectionContainer ref={setNodeRef} $isOver={isOver} $color={color}>
+      <KanbanSectionTitle>
         Title {title} - Totals {contacts.length}
-      </SectionTitle>
-      <SectionContent>
+      </KanbanSectionTitle>
+      <KanbanSectionContent>
         <SortableContext
           items={contacts}
           strategy={verticalListSortingStrategy}
@@ -44,12 +44,12 @@ export const Section = ({
         >
           {active ? <Cards key="overlayItem" contact={active} /> : null}
         </DragOverlay> */}
-      </SectionContent>
-    </SectionContainer>
+      </KanbanSectionContent>
+    </KanbanSectionContainer>
   );
 };
 
-const SectionContainer = styled.div<{ $color: string; $isOver: boolean }>`
+const KanbanSectionContainer = styled.div<{ $color: string; $isOver: boolean }>`
   display: flex;
   flex-wrap: nowrap;
   flex-shrink: 0;
@@ -62,7 +62,7 @@ const SectionContainer = styled.div<{ $color: string; $isOver: boolean }>`
     props.$isOver ? `brightness(${props.$color})` : props.$color};
   overflow: hidden;
 `;
-const SectionTitle = styled.div`
+const KanbanSectionTitle = styled.div`
   display: flex;
   align-items: center;
   height: 50px;
@@ -70,7 +70,7 @@ const SectionTitle = styled.div`
   padding: 10px;
 `;
 
-const SectionContent = styled.div`
+const KanbanSectionContent = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1 1 0%;
