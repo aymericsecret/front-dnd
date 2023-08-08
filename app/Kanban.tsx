@@ -1,6 +1,7 @@
 import { styled } from "styled-components";
 import {
   Active,
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverEvent,
@@ -15,7 +16,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   SortableContext,
   arrayMove,
@@ -40,34 +41,25 @@ const Wrapper = styled.div`
 
 export const Kanban = () => {
   const [sections, setSections] = useState<SectionList>(sectionsData);
-  const [active, setActive] = useState<Active | null>(null);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [containers, setContainers] = useState(
     Object.keys(sections) as UniqueIdentifier[]
   );
-  const isSortingContainer = active?.id
-    ? containers.includes(active?.id)
-    : false;
+  const isSortingContainer = activeId ? containers.includes(activeId) : false;
 
   const activeItem = useMemo(() => {
-    if (!active) {
+    if (!activeId) {
       return;
     }
     const sectionKey = Object.values(sections).find(
-      (section) => section.id === active.id
+      (section) => section.id === activeId
     );
-    // console.log(
-    //   "sections",
-    //   sections,
-    //   Object.values(sections)
-    //     .map((section) => section.items)
-    //     .flat()
-    // );
     const itemKey = Object.values(sections)
       .map((section) => section.items)
       .flat()
-      .find((item) => item.id === active?.id);
+      .find((item) => item.id === activeId);
     return sectionKey ?? itemKey;
-  }, [active, sections]);
+  }, [activeId, sections]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -180,11 +172,11 @@ export const Kanban = () => {
       }));
     }
 
-    setActive(null);
+    setActiveId(null);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActive(event.active);
+    setActiveId(event.active.id);
   };
 
   return (
@@ -195,7 +187,7 @@ export const Kanban = () => {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
-        setActive(null);
+        setActiveId(null);
       }}
     >
       <Wrapper>
