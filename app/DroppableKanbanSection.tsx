@@ -1,15 +1,11 @@
-import { UniqueIdentifier, useDroppable } from "@dnd-kit/core";
+import { UniqueIdentifier } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Item, Section } from "./types";
 import {
   AnimateLayoutChanges,
-  SortableContext,
   defaultAnimateLayoutChanges,
   useSortable,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { SortableCard } from "./Card";
-import { styled } from "styled-components";
 import { KanbanSection } from "./KanbanSection";
 import { ReactNode } from "react";
 
@@ -31,11 +27,9 @@ export const DroppableKanbanSection = ({
   style?: React.CSSProperties;
 }) => {
   const {
-    active,
     attributes,
     isDragging,
     listeners,
-    over,
     setNodeRef,
     transition,
     transform,
@@ -47,10 +41,6 @@ export const DroppableKanbanSection = ({
     },
     animateLayoutChanges,
   });
-  // const isOverContainer = over
-  //   ? (id === over.id && active?.data.current?.type !== "container") ||
-  //     items[id].map((item) => item.id).includes(over.id as string)
-  //   : false;
 
   return (
     <KanbanSection

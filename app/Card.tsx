@@ -1,9 +1,14 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CSSProperties, forwardRef } from "react";
+import {
+  CSSProperties,
+  HTMLAttributes,
+  SetStateAction,
+  forwardRef,
+} from "react";
 import { styled } from "styled-components";
 import { Item } from "./types";
-import { useDraggable } from "@dnd-kit/core";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
 const CardContainer = styled.div`
   height: 50px;
@@ -12,24 +17,32 @@ const CardContainer = styled.div`
   background-color: white;
 `;
 
-// eslint-disable-next-line react/display-name
-export const Card = forwardRef(({ item, ...props }: any, ref) => {
-  return (
-    <CardContainer id={item.id} {...props} ref={ref}>
-      {item?.name}
-    </CardContainer>
-  );
-});
-
-export const DraggableCard = ({ item }: { item: Item }) => {
-  const { attributes, listeners, setNodeRef } = useDraggable({
-    id: item.id,
-  });
-
-  return <Card ref={setNodeRef} item={item} {...listeners} {...attributes} />;
+type CardProps = HTMLAttributes<HTMLDivElement> & {
+  item: Item;
 };
+// eslint-disable-next-line react/display-name
+export const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ item, ...props }: CardProps, ref) => {
+    return (
+      <CardContainer ref={ref} {...props}>
+        {item?.name}
+      </CardContainer>
+    );
+  }
+);
 
-export const SortableCard = ({ disabled, item, ...props }: any) => {
+export const SortableCard = ({
+  id,
+  item,
+  disabled,
+}: {
+  key: UniqueIdentifier;
+  id: UniqueIdentifier;
+  item: Item;
+  selection: UniqueIdentifier[];
+  setSelection: (id: SetStateAction<UniqueIdentifier[]>) => void;
+  disabled: boolean;
+}) => {
   const {
     attributes,
     isDragging,
@@ -37,7 +50,7 @@ export const SortableCard = ({ disabled, item, ...props }: any) => {
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: props.id });
+  } = useSortable({ id });
 
   const style: CSSProperties = {
     opacity: isDragging ? 0.4 : undefined,

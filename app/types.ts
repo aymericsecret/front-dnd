@@ -1,5 +1,7 @@
+import { UniqueIdentifier } from "@dnd-kit/core";
+
 export type Item = {
-  id: string;
+  id: UniqueIdentifier;
   name: string;
   status: string;
 };

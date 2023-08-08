@@ -1,7 +1,5 @@
 import { styled } from "styled-components";
 import {
-  Active,
-  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverEvent,
@@ -16,18 +14,19 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   SortableContext,
   arrayMove,
+  horizontalListSortingStrategy,
+  rectSortingStrategy,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { findSectionContainer } from "./utils";
 import { Item, Section, SectionList } from "./types";
 import { KanbanSection } from "./KanbanSection";
 import { Card, SortableCard } from "./Card";
-import { originalItemsOrdered, sectionsData } from "./constants/data";
+import { sectionsData } from "./constants/data";
 import { DroppableKanbanSection } from "./DroppableKanbanSection";
 import { createPortal } from "react-dom";
 
@@ -41,6 +40,9 @@ const Wrapper = styled.div`
 
 export const Kanban = () => {
   const [sections, setSections] = useState<SectionList>(sectionsData);
+  const [clonedSections, setClonedSections] = useState<SectionList | null>(
+    null
+  );
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [containers, setContainers] = useState(
     Object.keys(sections) as UniqueIdentifier[]
@@ -72,7 +74,6 @@ export const Kanban = () => {
     const { active, over } = event;
 
     const overId = over?.id;
-    console.log("ondragover", active.id, sections);
     if (overId == null || active.id in sections) {
       return;
     }
@@ -88,7 +89,6 @@ export const Kanban = () => {
     ) {
       return;
     }
-    console.log("handleDragOver", { event, activeContainer, overContainer });
 
     setSections((prevSections) => {
       const activeItems = prevSections[activeContainer];
@@ -102,7 +102,6 @@ export const Kanban = () => {
         (item) => item.id !== over?.id
       );
 
-      console.log("setSection", { activeIndex, overIndex });
       return {
         ...prevSections,
         [activeContainer]: {
@@ -177,73 +176,66 @@ export const Kanban = () => {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
+    setClonedSections(sections);
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      onDragCancel={() => {
-        setActiveId(null);
-      }}
-    >
-      <Wrapper>
-        {containers.map((containerId) => (
-          <DroppableKanbanSection
-            key={containerId}
-            id={containerId}
-            title={sections[containerId].name}
-            color="#C9DDFF"
-            items={sections[containerId].items}
-          >
-            <SortableContext
+    <Wrapper>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => {
+          if (clonedSections) {
+            setSections(clonedSections);
+          }
+          setActiveId(null);
+          setClonedSections(null);
+        }}
+      >
+        <SortableContext
+          items={containers}
+          strategy={horizontalListSortingStrategy}
+        >
+          {containers.map((containerId) => (
+            <DroppableKanbanSection
+              key={containerId}
+              id={containerId}
+              title={sections[containerId].name}
+              color="#C9DDFF"
               items={sections[containerId].items}
-              strategy={verticalListSortingStrategy}
             >
-              {sections[containerId].items.map((item) => (
-                <SortableCard
-                  key={item.id}
-                  id={item.id}
-                  disabled={isSortingContainer}
-                  item={item}
-                />
-              ))}
-            </SortableContext>
-            {/* <DragOverlay
-              dropAnimation={{
-                duration: 500,
-                easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-              }}
-            >
-              {active ? <Cards key="overlayItem" contact={active} /> : null}
-            </DragOverlay> */}
-          </DroppableKanbanSection>
-        ))}
+              <SortableContext
+                items={sections[containerId].items}
+                strategy={rectSortingStrategy}
+              >
+                {sections[containerId].items.map((item) => (
+                  <SortableCard
+                    key={item.id}
+                    id={item.id}
+                    disabled={isSortingContainer}
+                    item={item}
+                  />
+                ))}
+              </SortableContext>
+            </DroppableKanbanSection>
+          ))}
+        </SortableContext>
 
         {createPortal(
           <DragOverlay dropAnimation={dropAnimation}>
-            {activeItem
-              ? Object.keys(sections).includes(activeItem.id)
+            {activeId
+              ? containers.includes(activeId)
                 ? renderContainerDragOverlay(activeItem as Section)
                 : renderSortableItemDragOverlay(activeItem as Item)
               : null}
           </DragOverlay>,
           document.body
         )}
-
-        {/* <DragOverlay
-          dropAnimation={{
-            duration: 500,
-            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-          }}
-        >
-          {active ? <Card key="overlayItem" contact={activeItem} /> : null}
-        </DragOverlay> */}
-      </Wrapper>
-    </DndContext>
+      </DndContext>
+    </Wrapper>
   );
 };
 

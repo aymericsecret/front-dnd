@@ -12,11 +12,23 @@ type KanbanSectionProps = HTMLAttributes<HTMLDivElement> & {
 // eslint-disable-next-line react/display-name
 export const KanbanSection = forwardRef<HTMLDivElement, KanbanSectionProps>(
   (
-    { title, color, items, children, handleProps }: KanbanSectionProps,
+    {
+      title,
+      color,
+      items,
+      children,
+      handleProps,
+      ...props
+    }: KanbanSectionProps,
     forwardedRef
   ) => {
     return (
-      <KanbanSectionContainer ref={forwardedRef} $isOver={false} $color={color}>
+      <KanbanSectionContainer
+        {...props}
+        ref={forwardedRef}
+        $isOver={false}
+        $color={color}
+      >
         <KanbanSectionTitle {...handleProps}>
           Title {title} - Totals {items.length}
         </KanbanSectionTitle>
