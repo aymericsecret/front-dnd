@@ -1,8 +1,9 @@
+import { UniqueIdentifier } from "@dnd-kit/core";
 import { SectionList } from "./types";
 
 export const findSectionContainer = (
   boardSections: SectionList,
-  id: string
+  id: UniqueIdentifier
 ) => {
   if (id in boardSections) {
     return id;

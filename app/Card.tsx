@@ -43,6 +43,7 @@ export const SortableCard = ({
   onToggle,
   disabled,
   checked,
+  dragging,
 }: {
   key: UniqueIdentifier;
   id: UniqueIdentifier;
@@ -50,6 +51,7 @@ export const SortableCard = ({
   onToggle?: (id: UniqueIdentifier) => void;
   disabled: boolean;
   checked: boolean;
+  dragging: boolean;
 }) => {
   const {
     attributes,
@@ -61,7 +63,7 @@ export const SortableCard = ({
   } = useSortable({ id });
 
   const style: CSSProperties = {
-    opacity: isDragging ? 0.4 : undefined,
+    opacity: isDragging || dragging ? 0.4 : undefined,
     transform: CSS.Translate.toString(transform),
     transition,
   };

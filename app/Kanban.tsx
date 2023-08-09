@@ -7,7 +7,6 @@ import {
   DragStartEvent,
   DropAnimation,
   KeyboardSensor,
-  PointerSensor,
   UniqueIdentifier,
   closestCenter,
   defaultDropAnimationSideEffects,
@@ -48,21 +47,27 @@ export const Kanban = () => {
   const [containers, setContainers] = useState(
     Object.keys(sections) as UniqueIdentifier[]
   );
+  const [selected, setSelection] = useState<UniqueIdentifier[]>([]);
   const isSortingContainer = activeId ? containers.includes(activeId) : false;
 
-  const activeItem = useMemo(() => {
+  const activeDraggedItems = useMemo(() => {
     if (!activeId) {
       return;
     }
     const sectionKey = Object.values(sections).find(
       (section) => section.id === activeId
     );
-    const itemKey = Object.values(sections)
+    const itemsList = Object.values(sections)
       .map((section) => section.items)
-      .flat()
-      .find((item) => item.id === activeId);
-    return sectionKey ?? itemKey;
-  }, [activeId, sections]);
+      .flat();
+    const itemKeys = [
+      itemsList.find((item) => item.id === activeId),
+      ...selected.filter((itemId) =>
+        itemsList.find((item) => item.id === itemId && item.id !== activeId)
+      ),
+    ];
+    return sectionKey ?? itemKeys;
+  }, [activeId, sections, selected]);
 
   const sensors = useSensors(
     useSensor(SmartPointerSensor),
@@ -71,22 +76,33 @@ export const Kanban = () => {
     })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id);
+  const initialContainer = useMemo(
+    () => (activeId ? findSectionContainer(sections, activeId) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeId]
+  );
+
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setSelection((selected) => (selected.includes(active.id) ? selected : []));
+    setActiveId(active.id);
     setClonedSections(sections);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
 
+    setSelection((selected) => (selected.includes(active.id) ? selected : []));
+    setActiveId(active.id);
+    setClonedSections(sections);
+
     const overId = over?.id;
-    if (overId == null || active.id in sections) {
+    if (!overId || active.id in sections) {
       return;
     }
 
     // Find the containers
-    const activeContainer = findSectionContainer(sections, active.id as string);
-    const overContainer = findSectionContainer(sections, over?.id as string);
+    const activeContainer = findSectionContainer(sections, active.id);
+    const overContainer = findSectionContainer(sections, overId);
 
     if (
       !activeContainer ||
@@ -135,44 +151,67 @@ export const Kanban = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
-    if (active.id in sections && over?.id) {
+    const overId = over?.id;
+    if (active.id in sections && overId) {
       setContainers((containers) => {
         const activeIndex = containers.indexOf(active.id);
-        const overIndex = containers.indexOf(over.id);
+        const overIndex = containers.indexOf(overId);
 
         return arrayMove(containers, activeIndex, overIndex);
       });
     }
 
-    const activeContainer = findSectionContainer(sections, active.id as string);
-    const overContainer = findSectionContainer(sections, over?.id as string);
+    const activeContainer = findSectionContainer(sections, active.id);
 
-    if (
-      !activeContainer ||
-      !overContainer ||
-      activeContainer !== overContainer
-    ) {
+    if (!activeContainer || !overId || !initialContainer) {
+      setActiveId(null);
+      setSelection([]);
       return;
     }
+    const overContainer = findSectionContainer(sections, overId);
 
-    const activeIndex = sections[activeContainer].items.findIndex(
-      (task) => task.id === active.id
-    );
-    const overIndex = sections[overContainer].items.findIndex(
-      (task) => task.id === over?.id
-    );
+    // const activeIndex = sections[activeContainer].items.findIndex(
+    //   (task) => task.id === active.id
+    // );
+    // const overIndex = sections[overContainer].items.findIndex(
+    //   (task) => task.id === overId
+    // );
+    if (overContainer) {
+      const overItems = filterItems(sections[overContainer].items);
+      const overIndex = overItems.findIndex((item) => item.id === overId);
+      const activeIndex = overItems.findIndex((item) => item.id === active.id);
+      const newItems = arrayMove(overItems, activeIndex, overIndex);
+      const newActiveIndex = newItems.findIndex(
+        (item) => item.id === active.id
+      );
 
-    if (activeIndex !== overIndex) {
+      const movingItemIds = selected.length
+        ? [active.id, ...selected.filter((id) => id !== active.id)]
+        : [active.id];
+
       setSections((prevSections) => ({
         ...prevSections,
+        [initialContainer]: {
+          ...prevSections[initialContainer],
+          items: prevSections[initialContainer].items.filter(
+            (item) => !movingItemIds.includes(item.id)
+          ),
+        },
+        [activeContainer]: {
+          ...prevSections[activeContainer],
+          items: prevSections[activeContainer].items.filter(
+            (item) => !movingItemIds.includes(item.id)
+          ),
+        }, // Not sure if we should keep this
         [overContainer]: {
           ...prevSections[overContainer],
-          items: arrayMove(
-            prevSections[overContainer].items,
-            activeIndex,
-            overIndex
-          ),
+          items: [
+            ...newItems.slice(0, newActiveIndex + 1),
+            ...prevSections[initialContainer].items.filter(
+              (item) => movingItemIds.includes(item.id) && item.id !== active.id
+            ),
+            ...newItems.slice(newActiveIndex + 1, newItems.length),
+          ],
         },
       }));
     }
@@ -180,20 +219,38 @@ export const Kanban = () => {
     setActiveId(null);
   };
 
-  const [selected, setSelection] = useState<UniqueIdentifier[]>([]);
+  function filterItems(items: Item[]) {
+    if (!activeId) {
+      return items;
+    }
+
+    return items.filter(
+      (item) => item.id === activeId || !selected.includes(item.id)
+    );
+  }
+
   const onToggleCard = useCallback(
     (itemId: UniqueIdentifier) => {
-      setSelection((prevSelected) =>
-        selected.includes(itemId)
+      setSelection((prevSelected) => {
+        if (
+          !selected.length ||
+          findSectionContainer(sections, itemId) !==
+            findSectionContainer(sections, selected[0])
+        ) {
+          return [itemId];
+        }
+
+        return selected.includes(itemId)
           ? prevSelected.filter((i) => i !== itemId)
-          : [...prevSelected, itemId].filter((i) => i !== undefined)
-      );
+          : [...prevSelected, itemId].filter((i) => i !== undefined);
+      });
     },
-    [selected]
+    [sections, selected]
   );
 
   return (
     <Wrapper>
+      <Badge>{3}</Badge>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -221,10 +278,10 @@ export const Kanban = () => {
               items={sections[containerId].items}
             >
               <SortableContext
-                items={sections[containerId].items}
+                items={filterItems(sections[containerId].items)}
                 strategy={rectSortingStrategy}
               >
-                {sections[containerId].items.map((item) => (
+                {filterItems(sections[containerId].items).map((item) => (
                   <SortableCard
                     key={item.id}
                     id={item.id}
@@ -232,6 +289,7 @@ export const Kanban = () => {
                     item={item}
                     checked={selected.includes(item.id)}
                     onToggle={onToggleCard}
+                    dragging={item.id === activeId}
                   />
                 ))}
               </SortableContext>
@@ -243,8 +301,8 @@ export const Kanban = () => {
           <DragOverlay dropAnimation={dropAnimation}>
             {activeId
               ? containers.includes(activeId)
-                ? renderContainerDragOverlay(activeItem as Section)
-                : renderSortableItemDragOverlay(activeItem as Item)
+                ? renderContainerDragOverlay(activeDraggedItems as Section)
+                : renderSortableItemDragOverlay(activeDraggedItems as Item[])
               : null}
           </DragOverlay>,
           document.body
@@ -264,8 +322,36 @@ const dropAnimation: DropAnimation = {
   }),
 };
 
-function renderSortableItemDragOverlay(activeItem: Item) {
-  return <Card key="overlayItem" checked item={activeItem} />;
+const Badge = styled.div`
+  background-color: black;
+  color: white;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+
+  position: absolute;
+  top: -10px;
+  right: -10px;
+`;
+
+const MultiCardsOverlay = styled.div`
+  position: relative;
+`;
+
+function renderSortableItemDragOverlay(activeDraggedItems: Item[]) {
+  if (activeDraggedItems.length === 1) {
+    return <Card key="overlayItem" checked item={activeDraggedItems[0]} />;
+  } else {
+    return (
+      <MultiCardsOverlay>
+        <Badge>{activeDraggedItems.length}</Badge>
+        <Card key="overlayItem" checked item={activeDraggedItems[0]} />
+      </MultiCardsOverlay>
+    );
+  }
 }
 
 function renderContainerDragOverlay(section: Section) {
