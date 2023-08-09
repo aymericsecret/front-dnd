@@ -260,7 +260,6 @@ export const Kanban = () => {
 
   return (
     <Wrapper>
-      <Badge>{3}</Badge>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
