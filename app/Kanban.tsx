@@ -113,16 +113,29 @@ export const Kanban = () => {
     }
 
     setSections((prevSections) => {
-      const activeItems = prevSections[activeContainer];
-      const overItems = prevSections[overContainer];
+      const activeItems = prevSections[activeContainer].items;
+      const overItems = prevSections[overContainer].items;
 
       // Find the indexes for the items
-      const activeIndex = activeItems.items.findIndex(
+      const activeIndex = activeItems.findIndex(
         (item) => item.id === active.id
       );
-      const overIndex = overItems.items.findIndex(
-        (item) => item.id !== over?.id
-      );
+      const overIndex = overItems.findIndex((item) => item.id !== over?.id);
+
+      let newIndex: number;
+
+      if (overId in prevSections) {
+        newIndex = overItems.length + 1;
+      } else {
+        const isBelowOverItem =
+          over &&
+          active.rect.current.translated &&
+          active.rect.current.translated.top > over.rect.top + over.rect.height;
+
+        const modifier = isBelowOverItem ? 1 : 0;
+
+        newIndex = overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
+      }
 
       return {
         ...prevSections,
@@ -137,12 +150,9 @@ export const Kanban = () => {
         [overContainer]: {
           ...prevSections[overContainer],
           items: [
-            ...prevSections[overContainer].items.slice(0, overIndex),
-            prevSections[activeContainer].items[activeIndex],
-            ...prevSections[overContainer].items.slice(
-              overIndex,
-              prevSections[overContainer].items.length
-            ),
+            ...overItems.slice(0, newIndex),
+            activeItems[activeIndex],
+            ...overItems.slice(newIndex, overItems.length),
           ],
         },
       };
