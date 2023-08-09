@@ -14,7 +14,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   SortableContext,
   arrayMove,
@@ -29,6 +29,7 @@ import { Card, SortableCard } from "./Card";
 import { sectionsData } from "./constants/data";
 import { DroppableKanbanSection } from "./DroppableKanbanSection";
 import { createPortal } from "react-dom";
+import { SmartPointerSensor } from "./utils/SmartPointerSensor";
 
 const Wrapper = styled.div`
   display: flex;
@@ -64,11 +65,16 @@ export const Kanban = () => {
   }, [activeId, sections]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(SmartPointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id);
+    setClonedSections(sections);
+  };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
@@ -174,10 +180,17 @@ export const Kanban = () => {
     setActiveId(null);
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id);
-    setClonedSections(sections);
-  };
+  const [selected, setSelection] = useState<UniqueIdentifier[]>([]);
+  const onToggleCard = useCallback(
+    (itemId: UniqueIdentifier) => {
+      setSelection((prevSelected) =>
+        selected.includes(itemId)
+          ? prevSelected.filter((i) => i !== itemId)
+          : [...prevSelected, itemId].filter((i) => i !== undefined)
+      );
+    },
+    [selected]
+  );
 
   return (
     <Wrapper>
@@ -217,6 +230,8 @@ export const Kanban = () => {
                     id={item.id}
                     disabled={isSortingContainer}
                     item={item}
+                    checked={selected.includes(item.id)}
+                    onToggle={onToggleCard}
                   />
                 ))}
               </SortableContext>
@@ -250,14 +265,14 @@ const dropAnimation: DropAnimation = {
 };
 
 function renderSortableItemDragOverlay(activeItem: Item) {
-  return <Card key="overlayItem" item={activeItem} />;
+  return <Card key="overlayItem" checked item={activeItem} />;
 }
 
 function renderContainerDragOverlay(section: Section) {
   return (
     <KanbanSection title={section.id} items={section.items} color="#C9DDF2">
       {section.items.map((item, index) => (
-        <Card key={index} item={item} />
+        <Card key={index} checked item={item} />
       ))}
     </KanbanSection>
   );
